@@ -1,37 +1,25 @@
 import pdfplumber
-import docx
-import os
+from docx import Document
 
-def extract_text_from_pdf(pdf_path):
-    """Extract text from PDF file."""
+def extract_text(uploaded_file):
+    """
+    Extract text from a Streamlit UploadedFile (PDF or DOCX).
+    """
     text = ""
-    try:
-        with pdfplumber.open(pdf_path) as pdf:
+    filename = uploaded_file.name.lower()
+
+    if filename.endswith(".pdf"):
+        with pdfplumber.open(uploaded_file) as pdf:
             for page in pdf.pages:
-                page_text = page.extract_text()
-                if page_text:
-                    text += page_text + "\n"
-    except Exception as e:
-        print(f"Error extracting PDF: {e}")
-    return text
+                text += page.extract_text() or ""
 
-def extract_text_from_docx(docx_path):
-    """Extract text from DOCX file."""
-    text = ""
-    try:
-        doc = docx.Document(docx_path)
+    elif filename.endswith(".docx"):
+        doc = Document(uploaded_file)
         for para in doc.paragraphs:
             text += para.text + "\n"
-    except Exception as e:
-        print(f"Error extracting DOCX: {e}")
-    return text
 
-def extract_text(file_path):
-    """Extract text from a resume file (PDF or DOCX)."""
-    ext = os.path.splitext(file_path)[1].lower()
-    if ext == '.pdf':
-        return extract_text_from_pdf(file_path)
-    elif ext == '.docx':
-        return extract_text_from_docx(file_path)
     else:
-        raise ValueError(f"Unsupported file format: {ext}")
+        raise ValueError("Unsupported file format. Please upload a PDF or DOCX file.")
+
+    return text.strip()
+
